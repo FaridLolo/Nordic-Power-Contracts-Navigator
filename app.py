@@ -144,10 +144,15 @@ flex_share_pct = st.sidebar.slider(
 )
 
 st.sidebar.markdown("---")
-n_simulations = st.sidebar.slider(
-    "Simulation runs (Monte Carlo)", min_value=200, max_value=5000, value=1500, step=100
-)
-random_seed = st.sidebar.number_input("Random seed", value=42, step=1)
+with st.sidebar.expander("Advanced / Methodology settings"):
+    st.caption(
+        "These control the underlying simulation's statistical precision. "
+        "Defaults work well for most scenarios — see README.md for full methodology."
+    )
+    n_simulations = st.slider(
+        "Simulation runs (Monte Carlo)", min_value=200, max_value=5000, value=1500, step=100
+    )
+    random_seed = st.number_input("Random seed", value=42, step=1)
 
 # --------------------------------------------------------------------------
 # Commercial Business Logic
@@ -457,10 +462,11 @@ with st.expander("Data sources & calibration"):
         - **Renewable PPA residual emissions**: ~11 gCO₂/kWh, in line with
           published wind lifecycle emission factors.
         - **PPA hedging premium and flexibility discount** remain user-adjustable
-          modeled parameters (sidebar), since real contract premiums vary widely
-          by duration, volume, counterparty credit risk, and structure
-          (pay-as-produced vs. baseload) — there is no single published number
-          for "the" PPA premium. For a sense of the real spread:
+          modeled parameters (sidebar → Advanced / Methodology settings), since
+          real contract premiums vary widely by duration, volume, counterparty
+          credit risk, and structure (pay-as-produced vs. baseload) — there is
+          no single published number for "the" PPA premium. For a sense of the
+          real spread:
           → [BloombergNEF — European Corporate PPA Price Survey](https://about.bnef.com/insights/clean-energy/sweden-spain-the-cheapest-european-markets-for-wind-and-solar-corporate-ppas-bnef-survey-finds/)
 
         See README.md for the full methodology.
