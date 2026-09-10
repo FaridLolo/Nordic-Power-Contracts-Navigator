@@ -126,10 +126,16 @@ st.sidebar.markdown(
 )
 
 avg_spot_price = st.sidebar.slider(
-    "Average Spot Price (€/MWh)", min_value=30, max_value=90, value=50
+    "Average Spot Price (€/MWh)", min_value=30, max_value=90, value=55
+)
+st.sidebar.markdown(
+    "<span class='small-note'>Reference: Nord Pool day-ahead average for Finland "
+    "was ≈€38.7/MWh in H1 2025 and ≈€71.7/MWh in H1 2026 — a real ~85% swing "
+    "in six months. The default above sits between the two.</span>",
+    unsafe_allow_html=True,
 )
 spot_volatility_pct = st.sidebar.slider(
-    "Spot Price Volatility (annual, %)", min_value=10, max_value=60, value=30
+    "Spot Price Volatility (annual, %)", min_value=10, max_value=60, value=35
 )
 flex_share_pct = st.sidebar.slider(
     "Flexibility-managed share of volume (%)",
@@ -164,8 +170,8 @@ RISK_PREMIUM_MULTIPLIER = {"Low": 1.15, "Medium": 1.10, "High": 1.05}
 PPA_HEDGE_PREMIUM = 0.12          # 12% premium embedded in a standard fixed PPA
 FLEX_DISCOUNT_ON_MANAGED_VOLUME = 0.18   # 18% saving on the flexibility-managed share
 FLEX_SERVICE_FEE_PER_MWH = 1.5    # €/MWh fee for running the flexibility service
-CO2_GRID_AVG_KG_PER_MWH = 90      # average Nordic grid emission factor (illustrative)
-CO2_PPA_RENEWABLE_KG_PER_MWH = 5  # residual emissions of a renewable-backed PPA
+CO2_GRID_AVG_KG_PER_MWH = 70      # Finland grid avg, ~2025 (Ember/Electricity Maps range 57-95 g/kWh)
+CO2_PPA_RENEWABLE_KG_PER_MWH = 11 # lifecycle residual emissions of wind/solar-backed PPA
 
 
 def simulate_spot_costs(volume_mwh, avg_price, volatility_pct, n_sims, seed):
@@ -433,8 +439,33 @@ with st.expander("📋 View detailed figures"):
         """
     )
 
+with st.expander("📎 Data sources & calibration"):
+    st.markdown(
+        """
+        Default values in this demo are calibrated against public market data,
+        not invented from scratch:
+
+        - **Spot price range**: Nord Pool day-ahead average for Finland was
+          ≈€38.7/MWh in H1 2025 and ≈€71.7/MWh in H1 2026 (Nord Pool data,
+          reported via industry market commentary).
+        - **Grid carbon intensity**: Finland's average grid emission factor is
+          commonly cited in the 57–95 gCO₂/kWh range depending on methodology
+          (Ember / Electricity Maps / Statistics Finland). This demo uses 70 g/kWh.
+        - **Renewable PPA residual emissions**: ~11 gCO₂/kWh, in line with
+          published wind lifecycle emission factors.
+        - **PPA hedging premium and flexibility discount** remain user-adjustable
+          modeled parameters (sidebar), since real contract premiums vary widely
+          by duration, volume, counterparty credit risk, and structure
+          (pay-as-produced vs. baseload) — there is no single published number
+          for "the" PPA premium, and this tool doesn't pretend otherwise.
+
+        This is still a simplified demonstration model, not a trading or
+        investment tool — see README.md for the full methodology and disclaimer.
+        """
+    )
+
 st.caption(
-    "This tool uses simplified, transparent illustrative assumptions for "
-    "commercial demonstration purposes. It is not a trading, pricing, or "
-    "investment tool. See README.md for full methodology."
+    "This tool uses simplified, transparent assumptions calibrated against "
+    "public market data for commercial demonstration purposes. It is not a "
+    "trading, pricing, or investment tool. See README.md for full methodology."
 )
