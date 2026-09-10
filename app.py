@@ -285,6 +285,25 @@ co2_saving_tons = co2_spot_tons - co2_hybrid_tons
 savings_vs_spot = spot_costs.mean() - hybrid_costs.mean()
 savings_vs_ppa = ppa_costs.mean() - hybrid_costs.mean()
 
+
+def format_savings_line(label, savings_value):
+    """Render an honest savings/cost line: green 'savings' when the Hybrid
+    option is cheaper, amber 'cost' framed as a risk trade-off when it is
+    not. Avoids ever labeling a negative number as a 'saving'."""
+    if savings_value >= 0:
+        return (
+            f'<p style="font-size:1.05rem; margin-bottom:4px;">'
+            f'Estimated annual savings vs. <b>{label}</b>: '
+            f'<b style="color:{PRIMARY}; font-size:1.3rem;">€{savings_value:,.0f}</b></p>'
+        )
+    else:
+        return (
+            f'<p style="font-size:1.05rem; margin-bottom:4px;">'
+            f'Estimated annual cost vs. <b>{label}</b>: '
+            f'<b style="color:{WARN}; font-size:1.3rem;">+€{abs(savings_value):,.0f}</b> '
+            f'<span class="small-note">(trade-off for price certainty / lower risk)</span></p>'
+        )
+
 # --------------------------------------------------------------------------
 # Header
 # --------------------------------------------------------------------------
@@ -311,14 +330,8 @@ with col1:
         f"""
         <div class="value-box">
         <h3>Value Proposition Summary — Hybrid PPA + Flexibility</h3>
-        <p style="font-size:1.05rem; margin-bottom:4px;">
-        Estimated annual savings vs. <b>100% Spot Market</b>:
-        <b style="color:{PRIMARY}; font-size:1.3rem;">€{savings_vs_spot:,.0f}</b>
-        </p>
-        <p style="font-size:1.05rem; margin-bottom:4px;">
-        Estimated annual savings vs. <b>Standard Fixed PPA</b>:
-        <b style="color:{PRIMARY}; font-size:1.3rem;">€{savings_vs_ppa:,.0f}</b>
-        </p>
+        {format_savings_line("100% Spot Market", savings_vs_spot)}
+        {format_savings_line("Standard Fixed PPA", savings_vs_ppa)}
         <p style="font-size:1.05rem; margin-bottom:0;">
         Estimated CO₂ reduction vs. current spot sourcing:
         <b style="color:{GRID_GREEN}; font-size:1.3rem;">{co2_saving_tons:,.0f} tons CO₂/year</b>
