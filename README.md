@@ -1,4 +1,4 @@
-# Nordic Power Contracts Navigator
+# ⚡ Nordic Power Contracts Navigator
 
 A lightweight, interactive Proof-of-Concept that helps large corporate
 electricity customers understand and compare three procurement strategies:
@@ -27,11 +27,10 @@ spreadsheet:
 - *How do I explain this trade-off internally, to a CFO who wants numbers,
   not market jargon?*
 
-This project is a **commercial product demonstration**, not a trading
-system. Its job is to take the same mechanics a pricing or portfolio team
-already understands — hedging premiums, volatility, risk-sharing — and turn
-them into a two-minute visual story a Commercial Product Manager can walk a
-customer through in a sales or account-management conversation.
+This is a commercial product demonstration, not a trading system. It takes
+mechanics a pricing or portfolio team already works with — hedging premiums,
+volatility, risk-sharing — and puts them in a visual form a Commercial
+Product Manager can walk a customer through.
 
 ---
 
@@ -43,77 +42,92 @@ customer through in a sales or account-management conversation.
 └── README.md            # This file
 ```
 
-The app is a single, self-contained `app.py` so it can be reviewed,
-forked, and deployed in minutes — deliberately built as something a
-prospective employer or colleague can run locally in under five minutes.
+The app is a single, self-contained `app.py` so it's easy to review, fork,
+and run locally.
 
 ---
 
-## Commercial & business logic
+## Methodology
 
-All calculations live in clearly commented functions in `app.py`. The
-assumptions below are **illustrative defaults** chosen to produce a
-realistic-looking, directionally sound demo — they are editable in the
-sidebar and are explicitly *not* a market forecast or trading model.
+### 1. Purpose
+The model answers one question for a corporate electricity buyer: *for a
+given consumption volume and risk tolerance, what does each of the three
+procurement options cost, and how much does that cost vary?* It is a
+comparison tool, not a forecasting or trading model.
 
-### 1. Customer inputs
-- **Annual consumption (GWh/year)** — sets the scale of the contract.
-- **Risk tolerance profile** (Low / Medium / High) — frames how the
-  results should be discussed (the tool itself always shows all three
-  options; risk tolerance is a conversation anchor for the sales team).
-- **Current purchasing model** — for context on where the customer is
-  starting from.
+### 2. Inputs and assumptions
 
-### 2. The three contract options
+| Parameter | Value | Source / status |
+|---|---|---|
+| Annual consumption, risk profile, current model | User input | Set by the customer conversation |
+| Average spot price | Default €55/MWh, adjustable €30–90 | Anchored to Nord Pool day-ahead Finland: ≈€38.7/MWh (H1 2025) to ≈€71.7/MWh (H1 2026) |
+| Spot price volatility | Default 35%/year, adjustable | User-set; no single published figure for future volatility |
+| PPA hedging premium | 12% over average spot price | Modeled assumption — real premiums vary by duration, volume and counterparty credit; see BloombergNEF range below |
+| Flexibility discount | 18% on the managed share | Modeled assumption, adjustable |
+| Flexibility service fee | €1.5/MWh | Modeled assumption |
+| Grid carbon intensity | 70 gCO₂/kWh | Within the 57–95 g/kWh range reported by Electricity Maps and Ember for Finland |
+| Renewable PPA residual emissions | 11 gCO₂/kWh | In line with published wind lifecycle emission factors |
 
-| Option | Logic |
-|---|---|
-| **100% Spot Market** | Modeled with a Monte Carlo simulation: 12 monthly spot prices are drawn from a log-normal distribution around the customer's average spot price assumption, with a volatility parameter the user controls. This produces a realistic **distribution** of possible annual costs, not a single number — because that unpredictability *is* the commercial story for this option. |
-| **Standard Fixed PPA** | Priced as the average spot price plus a **hedging premium** (default 12%), reflecting the premium a supplier typically embeds to absorb the customer's volatility risk. The result is a single flat number — full price certainty, zero variance. |
-| **Hybrid PPA + Flexibility** | Splits volume into a **fixed backbone** (priced like the standard PPA) and a **flexibility-managed share** (user-adjustable, default 30%). The flexible share is simulated against the same spot volatility, but with a **discount** (default 18%) representing the value captured by shifting load to cheaper price windows, net of a **flexibility service fee** (€1.5/MWh) representing the cost of running the optimization service. |
+Sources:
+[Nord Pool day-ahead prices](https://data.nordpoolgroup.com/auction/day-ahead/prices) ·
+[Electricity Maps — Finland](https://app.electricitymaps.com/zone/FI) ·
+[Ember — Electricity Data Explorer](https://ember-energy.org/data/electricity-data-explorer/) ·
+[Fingrid — real-time CO₂ estimate](https://www.fingrid.fi/en/electricity-market-information/real-time-co2-emissions-estimate/) ·
+[BloombergNEF — European Corporate PPA Price Survey](https://about.bnef.com/insights/clean-energy/sweden-spain-the-cheapest-european-markets-for-wind-and-solar-corporate-ppas-bnef-survey-finds/)
 
-### 3. Risk Exposure Index (0–100)
-A simple, explainable proxy for "how much could your annual bill move?",
-calculated as the coefficient of variation (standard deviation ÷ mean) of
-each option's simulated annual cost, scaled to a 0–100 index. A flat PPA
-scores near 0; spot market typically scores highest.
+The hedging premium, flexibility discount and service fee are left as
+adjustable parameters rather than fixed to a single "market" number,
+because real PPA pricing depends on contract duration, volume, structure,
+and counterparty credit risk — there is no single correct value to hard-code.
 
-### 4. Savings and CO₂ impact
-- **Savings** are shown for Hybrid vs. Spot and Hybrid vs. standard PPA, using
-  the mean simulated annual cost of each option.
-- **CO₂ impact** assumes spot-sourced power reflects the average Nordic grid
-  emissions factor, while PPA and Hybrid volumes are renewable-backed
-  (typical of real-world corporate PPAs), so switching away from spot
-  reduces the customer's reported emissions.
+### 3. Calculation logic
 
-> **Disclaimer:** All prices, premiums, discounts, and emissions factors
-> are configurable illustrative defaults for demonstration purposes. They
-> are not price forecasts, trading advice, or a substitute for a real
-> pricing/risk model.
+- **100% Spot Market**: a Monte Carlo simulation draws 12 monthly spot
+  prices per run from a log-normal distribution around the average spot
+  price, with the user-set volatility as the distribution's spread. This
+  produces a distribution of annual costs rather than a single number,
+  since variability is what the customer is actually exposed to.
+- **Standard Fixed PPA**: average spot price × (1 + hedging premium),
+  applied to the full volume. A flat number with no simulated variance.
+- **Hybrid PPA + Flexibility**: volume is split into a fixed backbone
+  (priced as the standard PPA) and a flexibility-managed share (default
+  30%, adjustable). The flexible share is simulated against the same spot
+  volatility, discounted by the flexibility discount, and charged the
+  service fee per MWh.
+- **Risk Exposure Index (0–100)**: coefficient of variation (standard
+  deviation ÷ mean) of each option's simulated annual cost, scaled to a
+  0–100 index for readability. A flat PPA sits near 0; spot market is
+  typically highest.
+- **Savings and CO₂ impact**: savings compare mean simulated annual cost
+  across options. CO₂ impact assumes spot-sourced volume reflects the
+  average grid emissions factor and PPA/Hybrid volume is renewable-backed.
 
-### Data sources and calibration
+### 4. Simulation parameters
+Monte Carlo runs (default 1,500, adjustable 200–5,000) and a fixed random
+seed (default 42, adjustable) control the simulation. A fixed seed makes
+results reproducible between runs with the same inputs; changing it shows
+how much the specific numbers depend on random draw versus the underlying
+assumptions.
 
-Rather than inventing numbers from scratch, the default parameters are
-anchored to public market data:
+### 5. Limitations
+- Monthly prices are drawn independently (log-normal), not modeled with
+  month-to-month correlation or seasonality.
+- The hedging premium, flexibility discount and service fee are static
+  inputs, not derived from a counterparty credit or contract-structure model.
+- No modeling of extreme/tail scenarios (e.g. multi-month price spikes),
+  contract default risk, or currency effects.
+- CO₂ figures use a single national grid-average factor, not hourly or
+  regional variation.
 
-- **Spot price reference**: Nord Pool day-ahead average price for Finland
-  was approximately €38.7/MWh in H1 2025 and €71.7/MWh in H1 2026 — an
-  ~85% increase in six months, driven by low wind output, low hydro
-  reservoir levels, and a cold winter. This real swing is itself the core
-  commercial argument for hedging instruments like PPAs.
-- **Grid carbon intensity**: Finland's average grid emission factor is
-  reported in the 57–95 gCO₂/kWh range depending on source and methodology
-  (Ember, Electricity Maps, Statistics Finland); this demo uses 70 g/kWh.
-- **Renewable PPA residual emissions**: ~11 gCO₂/kWh, consistent with
-  published wind lifecycle emission factors.
-- **PPA hedging premium / flexibility discount**: kept as user-adjustable
-  parameters rather than a single hard-coded "market" number, because real
-  PPA premiums vary significantly by contract duration, volume, structure
-  (pay-as-produced vs. baseload), and counterparty credit risk — industry
-  surveys (e.g. BloombergNEF's European Corporate PPA Price Survey) show
-  baseload premiums over pay-as-produced deals ranging from ~€1.7/MWh in
-  Finland up to ~€6.4/MWh in the UK, underscoring how market- and
-  structure-specific these premiums are.
+### 6. Interpreting the output
+The absolute € and tons-CO₂ figures should be read as directional, not as
+a quote. The more load-bearing outputs are the *shape* of the comparison —
+that a flat PPA removes variance at a premium, and that a flexibility share
+can reduce cost while keeping most of the volume protected — since that
+relationship holds regardless of the exact parameter values.
+
+> All prices, premiums, discounts and emissions factors above are
+> adjustable illustrative defaults, not price forecasts or trading advice.
 
 ---
 
@@ -152,7 +166,6 @@ The app will open at `http://localhost:8501`.
 
 ## About this project
 
-This Proof-of-Concept was built to demonstrate how commercial product
-thinking — translating market mechanics into clear customer value — can be
-expressed as a working tool, not just a slide deck.
-
+This is a proof-of-concept built to explore how commercial product
+thinking — translating market mechanics into customer-facing value — holds
+up as a working tool rather than a slide deck.
