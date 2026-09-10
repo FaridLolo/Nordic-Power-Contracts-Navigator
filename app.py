@@ -8,15 +8,11 @@ electricity customers compare three procurement strategies:
     2. Standard Fixed-Price PPA
     3. Hybrid PPA + Flexibility solution
 
-The purpose of this tool is NOT to forecast real market prices.
-It is a commercial storytelling instrument: it turns abstract market
-mechanics (volatility, hedging, risk premium, demand-response value)
-into a simple visual conversation a Commercial Product Manager can
-have with a corporate customer.
+It turns market mechanics (volatility, hedging, risk premium,
+demand-response value) into a simple visual comparison a Commercial
+Product Manager can walk a customer through.
 
-All price and volatility assumptions are clearly documented in
-README.md and are illustrative, not trading advice or a market
-forecast.
+Methodology, assumptions and data sources are documented in README.md.
 """
 
 import numpy as np
@@ -131,7 +127,8 @@ avg_spot_price = st.sidebar.slider(
 st.sidebar.markdown(
     "<span class='small-note'>Reference: Nord Pool day-ahead average for Finland "
     "was ≈€38.7/MWh in H1 2025 and ≈€71.7/MWh in H1 2026 — a real ~85% swing "
-    "in six months. The default above sits between the two.</span>",
+    "in six months. The default above sits between the two. "
+    "[Source: Nord Pool](https://data.nordpoolgroup.com/auction/day-ahead/prices)</span>",
     unsafe_allow_html=True,
 )
 spot_volatility_pct = st.sidebar.slider(
@@ -308,7 +305,7 @@ with col1:
     st.markdown(
         f"""
         <div class="value-box">
-        <h3>💡 Value Proposition Summary — Hybrid PPA + Flexibility</h3>
+        <h3>Value Proposition Summary — Hybrid PPA + Flexibility</h3>
         <p style="font-size:1.05rem; margin-bottom:4px;">
         Estimated annual savings vs. <b>100% Spot Market</b>:
         <b style="color:{PRIMARY}; font-size:1.3rem;">€{savings_vs_spot:,.0f}</b>
@@ -336,7 +333,7 @@ st.markdown("---")
 # --------------------------------------------------------------------------
 # Comparison Chart — Cost forecast & risk range
 # --------------------------------------------------------------------------
-st.subheader("📊 Cost Forecast & Risk Range by Contract Option")
+st.subheader("Cost Forecast & Risk Range by Contract Option")
 
 fig = go.Figure()
 
@@ -394,7 +391,7 @@ st.markdown(
 # --------------------------------------------------------------------------
 # Risk Index comparison (horizontal bar)
 # --------------------------------------------------------------------------
-st.subheader("🎯 Risk Exposure Index")
+st.subheader("Risk Exposure Index")
 
 fig_risk = go.Figure(
     go.Bar(
@@ -422,7 +419,7 @@ st.markdown("---")
 # --------------------------------------------------------------------------
 # Detailed table
 # --------------------------------------------------------------------------
-with st.expander("📋 View detailed figures"):
+with st.expander("View detailed figures"):
     display_df = results.copy()
     for c in ["Mean Annual Cost (€)", "Low (P10, €)", "High (P90, €)"]:
         display_df[c] = display_df[c].map(lambda v: f"€{v:,.0f}")
@@ -439,28 +436,34 @@ with st.expander("📋 View detailed figures"):
         """
     )
 
-with st.expander("📎 Data sources & calibration"):
+with st.expander("Data sources & calibration"):
     st.markdown(
         """
-        Default values in this demo are calibrated against public market data,
-        not invented from scratch:
+        Default values are calibrated against public market data rather than
+        set arbitrarily. Live sources are linked below so the numbers can be
+        checked or refreshed at any time:
 
         - **Spot price range**: Nord Pool day-ahead average for Finland was
-          ≈€38.7/MWh in H1 2025 and ≈€71.7/MWh in H1 2026 (Nord Pool data,
-          reported via industry market commentary).
+          ≈€38.7/MWh in H1 2025 and ≈€71.7/MWh in H1 2026, an ~85% swing
+          driven by low wind output, low hydro reservoir levels, and a cold
+          winter.
+          → [Nord Pool day-ahead prices](https://data.nordpoolgroup.com/auction/day-ahead/prices)
         - **Grid carbon intensity**: Finland's average grid emission factor is
           commonly cited in the 57–95 gCO₂/kWh range depending on methodology
-          (Ember / Electricity Maps / Statistics Finland). This demo uses 70 g/kWh.
+          and year. This demo uses 70 g/kWh.
+          → [Electricity Maps — Finland](https://app.electricitymaps.com/zone/FI) ·
+          [Ember — Electricity Data Explorer](https://ember-energy.org/data/electricity-data-explorer/) ·
+          [Fingrid — real-time CO₂ estimate](https://www.fingrid.fi/en/electricity-market-information/real-time-co2-emissions-estimate/)
         - **Renewable PPA residual emissions**: ~11 gCO₂/kWh, in line with
           published wind lifecycle emission factors.
         - **PPA hedging premium and flexibility discount** remain user-adjustable
           modeled parameters (sidebar), since real contract premiums vary widely
           by duration, volume, counterparty credit risk, and structure
           (pay-as-produced vs. baseload) — there is no single published number
-          for "the" PPA premium, and this tool doesn't pretend otherwise.
+          for "the" PPA premium. For a sense of the real spread:
+          → [BloombergNEF — European Corporate PPA Price Survey](https://about.bnef.com/insights/clean-energy/sweden-spain-the-cheapest-european-markets-for-wind-and-solar-corporate-ppas-bnef-survey-finds/)
 
-        This is still a simplified demonstration model, not a trading or
-        investment tool — see README.md for the full methodology and disclaimer.
+        See README.md for the full methodology.
         """
     )
 
