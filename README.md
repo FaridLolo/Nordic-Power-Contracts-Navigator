@@ -1,4 +1,4 @@
-# ⚡ Nordic Power Contracts Navigator
+# Nordic Power Contracts Navigator
 
 A lightweight, interactive Proof-of-Concept that helps large corporate
 electricity customers understand and compare three procurement strategies:
@@ -91,6 +91,30 @@ scores near 0; spot market typically scores highest.
 > are not price forecasts, trading advice, or a substitute for a real
 > pricing/risk model.
 
+### Data sources and calibration
+
+Rather than inventing numbers from scratch, the default parameters are
+anchored to public market data:
+
+- **Spot price reference**: Nord Pool day-ahead average price for Finland
+  was approximately €38.7/MWh in H1 2025 and €71.7/MWh in H1 2026 — an
+  ~85% increase in six months, driven by low wind output, low hydro
+  reservoir levels, and a cold winter. This real swing is itself the core
+  commercial argument for hedging instruments like PPAs.
+- **Grid carbon intensity**: Finland's average grid emission factor is
+  reported in the 57–95 gCO₂/kWh range depending on source and methodology
+  (Ember, Electricity Maps, Statistics Finland); this demo uses 70 g/kWh.
+- **Renewable PPA residual emissions**: ~11 gCO₂/kWh, consistent with
+  published wind lifecycle emission factors.
+- **PPA hedging premium / flexibility discount**: kept as user-adjustable
+  parameters rather than a single hard-coded "market" number, because real
+  PPA premiums vary significantly by contract duration, volume, structure
+  (pay-as-produced vs. baseload), and counterparty credit risk — industry
+  surveys (e.g. BloombergNEF's European Corporate PPA Price Survey) show
+  baseload premiums over pay-as-produced deals ranging from ~€1.7/MWh in
+  Finland up to ~€6.4/MWh in the UK, underscoring how market- and
+  structure-specific these premiums are.
+
 ---
 
 ## Visual design
@@ -131,3 +155,4 @@ The app will open at `http://localhost:8501`.
 This Proof-of-Concept was built to demonstrate how commercial product
 thinking — translating market mechanics into clear customer value — can be
 expressed as a working tool, not just a slide deck.
+
